@@ -256,6 +256,20 @@ video{width:100%;border-radius:10px;background:#000;aspect-ratio:4/3;object-fit:
 .login .logo{width:72px;height:72px;border-radius:16px;margin:0 auto 14px}
 .login h1{text-align:center;font-size:28px;margin:0}
 .login p.sub{text-align:center;margin:6px 0 18px}
+
+.hero{position:relative;margin:0 0 8px;overflow:hidden;background:#000}
+.hero svg{display:block;width:100%;height:250px}
+.hx{position:absolute;left:16px;top:16px;right:16px;color:#fff;text-shadow:0 1px 12px rgba(0,0,0,.35)}
+.hk{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.9}
+.hn{display:flex;align-items:flex-end;gap:10px;margin-top:2px}
+.hn b{font-size:64px;font-weight:800;letter-spacing:-.04em;line-height:.9}
+.hn span{font-size:14px;font-weight:600;line-height:1.2;padding-bottom:6px;opacity:.95}
+.hw{font-size:14px;font-weight:600;margin-top:6px;opacity:.9}
+.wb{margin:0 -16px 14px;height:128px;overflow:hidden}
+.wb svg{display:block;width:100%;height:128px}
+.wb text{font-size:12px;font-weight:700;fill:#1c1c1e;opacity:.75;font-family:inherit}.wb text.wt{fill:#fff;opacity:.85;font-weight:600}
+.stairs text{font-size:11px;fill:var(--sub);font-family:inherit}
+.stairs text.sb{font-size:12px;font-weight:700;fill:var(--ink)}
 </style>
 </head>
 <body>
@@ -488,7 +502,8 @@ function structBar(segs, legend) {
     ${legend ? `<div class="zl">${zs.map((z) => `<span><i style="background:var(--z${z})"></i>${ZNAME[z]}</span>`).join("")}</div>` : ""}`;
 }
 const totalMin = (segs) => Math.round(segs.reduce((s, x) => s + x.min, 0));
-const exercises = (p) => (p.details || "").replace(/^30 min locker laufen, danach /, "").split(/,\s*/).filter((x) => x.length < 40);
+const exList = (p) => (p.details || "").replace(/^30 min locker laufen, danach /, "").replace(/\.$/, "").split(/,\s*/).filter((x) => x.length < 40);
+const exercises = (p) => { const l = exList(p); if (l.length >= 3) return l; const o = S.plan.find((x) => x.kind === p.kind && exList(x).length >= 3); return o ? exList(o) : l; };
 
 // ---------- Bereitschaft ----------
 function readiness() {
@@ -538,6 +553,83 @@ function weeksBar(weekNo) {
 }
 const pace = (a) => a.distance_km ? (() => { const m = a.duration_min / a.distance_km; return `${Math.floor(m)}:${String(Math.round((m % 1) * 60)).padStart(2, "0")}`; })() : "–";
 
+// ---------- Grafiken ----------
+function skyTheme(h) {
+  if (h >= 5 && h < 9) return { s: ["#ffb38a", "#ffd9a8", "#fde9d0"], sun: "#fff3d6", sunY: 120, far: "#c98b86", near: "#5b3346", water: "#e9a493", stars: 0 };
+  if (h >= 9 && h < 17) return { s: ["#4aa3ff", "#8cc8ff", "#d8ecff"], sun: "#ffffff", sunY: 52, far: "#8db3d6", near: "#1d3557", water: "#5c97cf", stars: 0 };
+  if (h >= 17 && h < 21) return { s: ["#3b2a6e", "#e2231a", "#ffb05c"], sun: "#ffe0a3", sunY: 132, far: "#a1476a", near: "#26122e", water: "#c4453f", stars: 0 };
+  return { s: ["#070b1f", "#141c45", "#2b2f66"], sun: "#f4f1e6", sunY: 46, far: "#2a3266", near: "#05060f", water: "#1a2050", stars: 1 };
+}
+function hero(raceIn, weekNo, frac) {
+  const T = skyTheme(new Date().getHours()), W = 390, H = 250, G = 186;
+  const stars = T.stars ? [...Array(28)].map((_, i) => `<circle cx="${(i * 97) % W}" cy="${(i * 53) % 120 + 6}" r="${i % 4 ? .7 : 1.2}" fill="#fff" opacity="${.35 + (i % 3) * .2}"/>`).join("") : "";
+  // Dom: zwei Türme mit Spitzen, Langhaus, Vierungsturm
+  const tower = (x) => `<path d="M${x} ${G}V122h2v-6h14v6h2V${G}zM${x + 3} 116V98h12v18zM${x + 4} 98L${x + 9} 34L${x + 14} 98z"/><path d="M${x + 9} 34v-5" stroke="${T.near}" stroke-width="1.4"/>`;
+  const dom = `${tower(262)}${tower(296)}<path d="M280 ${G}V128h16V${G}zM314 ${G}V134l6-8h44l6 8V${G}zM346 126l4-24 4 24z"/>`;
+  // Kranhäuser
+  const kran = [22, 64, 106].map((x) => `<path d="M${x} ${G}V128h40v14H${x + 10}V${G}z"/>`).join("");
+  // Hohenzollernbrücke
+  const arch = (x) => `<path d="M${x} 172Q${x + 15} 146 ${x + 30} 172" fill="none" stroke="${T.near}" stroke-width="3"/>`;
+  const bridge = ``;
+  const far = `<g fill="${T.far}"><path d="M0 ${G}V160h18v-8h20v34zM150 ${G}V150h14v36zM168 ${G}V142h4V58h2V46h2v12h2v84h4v44z"/><ellipse cx="175" cy="70" rx="7" ry="4"/><path d="M196 ${G}V136h22l-4 50zM350 ${G}V112h18v74zM372 ${G}V150h18v36z"/></g>`;
+  const x0 = 18, x1 = 372, rx = x0 + (x1 - x0) * Math.max(0, Math.min(1, frac));
+  return `<div class="hero"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${T.s[0]}"/><stop offset=".6" stop-color="${T.s[1]}"/><stop offset="1" stop-color="${T.s[2]}"/></linearGradient>
+      <linearGradient id="wat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${T.water}"/><stop offset="1" stop-color="${T.near}"/></linearGradient>
+      <radialGradient id="glow"><stop offset="0" stop-color="${T.sun}" stop-opacity=".7"/><stop offset="1" stop-color="${T.sun}" stop-opacity="0"/></radialGradient></defs>
+    <rect width="${W}" height="${H}" fill="url(#sky)"/>${stars}
+    <circle cx="236" cy="${T.sunY}" r="60" fill="url(#glow)"/><circle cx="236" cy="${T.sunY}" r="17" fill="${T.sun}"/>
+    ${far}<g fill="${T.near}">${kran}${dom}${bridge}<rect x="0" y="${G}" width="${W}" height="6"/></g>
+    <rect x="0" y="${G + 6}" width="${W}" height="${H - G}" fill="url(#wat)"/>
+    ${[0, 1, 2, 3, 4].map((i) => `<rect x="${212 + i * 7}" y="${G + 12 + i * 8}" width="${50 - i * 8}" height="1.5" fill="${T.sun}" opacity="${.5 - i * .08}"/>`).join("")}
+    <line x1="${x0}" y1="226" x2="${x1}" y2="226" stroke="#fff" stroke-opacity=".35" stroke-width="3" stroke-dasharray="2 6" stroke-linecap="round"/>
+    <line x1="${x0}" y1="226" x2="${rx}" y2="226" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="${rx}" cy="226" r="7" fill="var(--acc)" stroke="#fff" stroke-width="2.5"/>
+    <g transform="translate(${x1 - 6} 212)"><rect width="12" height="10" fill="#fff"/><rect width="3" height="2.5" fill="#000"/><rect x="6" width="3" height="2.5" fill="#000"/><rect x="3" y="2.5" width="3" height="2.5" fill="#000"/><rect x="9" y="2.5" width="3" height="2.5" fill="#000"/><rect y="5" width="3" height="2.5" fill="#000"/><rect x="6" y="5" width="3" height="2.5" fill="#000"/><rect x="3" y="7.5" width="3" height="2.5" fill="#000"/><rect x="9" y="7.5" width="3" height="2.5" fill="#000"/><path d="M0 0v18" stroke="#fff" stroke-width="1.5"/></g>
+  </svg>
+  <div class="hx"><div class="hk">${RACE.name}, ${monthDay(RACE.date)}</div><div class="hn"><b class="num">${raceIn}</b><span>Tage bis zum<br>Halbmarathon</span></div>
+    <div class="hw">${weekNo ? `Woche ${weekNo} von 26` : "Start-Wochenende"}, Ziel unter 2:00 h</div></div></div>`;
+}
+
+function woBanner(p, segs) {
+  const k = p ? p.kind : "rest", W = 390, H = 128;
+  if (k.startsWith("kraft")) {
+    const plate = (x, h) => `<rect x="${x}" y="${64 - h / 2}" width="13" height="${h}" rx="3"/>`;
+    return `<div class="wb" style="background:linear-gradient(135deg,#1c1c1e,#3a3a3c)"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <g opacity=".08" fill="#fff">${[...Array(9)].map((_, i) => `<rect x="${i * 48 - 10}" y="0" width="24" height="${H}" transform="skewX(-20)"/>`).join("")}</g>
+      <g transform="rotate(-14 195 64)"><rect x="110" y="59" width="170" height="10" rx="3" fill="#8e8e93"/><g fill="var(--acc)">${plate(122, 76)}${plate(137, 60)}${plate(240, 60)}${plate(255, 76)}</g><g fill="#c7c7cc"><rect x="100" y="56" width="10" height="16" rx="2"/><rect x="280" y="56" width="10" height="16" rx="2"/></g></g>
+    </svg></div>`;
+  }
+  if (!p || !isTrain(p)) {
+    return `<div class="wb" style="background:linear-gradient(180deg,#0b1030,#2b2f66)"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      ${[...Array(30)].map((_, i) => `<circle cx="${(i * 71) % W}" cy="${(i * 37) % 100 + 6}" r="${i % 5 ? .8 : 1.4}" fill="#fff" opacity="${.3 + (i % 3) * .2}"/>`).join("")}
+      <circle cx="300" cy="46" r="22" fill="#f4f1e6"/><circle cx="311" cy="40" r="20" fill="#16204a"/>
+      <path d="M0 110Q100 80 200 104T390 96V128H0z" fill="#05060f"/></svg></div>`;
+  }
+  const pal = { run_quality: ["#ff5f3a", "#e2231a", "#7a0f0a"], long: ["#8e6bff", "#4b2bd1", "#1d0f5c"], race: ["#ffcf3a", "#e2231a", "#1c1c1e"], walk: ["#7fd6a0", "#22a55b", "#0b3d22"] }[k] || ["#5ac8fa", "#0a7aff", "#06265a"];
+  const tot = segs.reduce((s, x) => s + x.min, 0) || 1, gap = 3, usable = W - 32 - gap * (segs.length - 1); let x = 16;
+  const bars = segs.map((sg) => { const w = Math.max(3, sg.min / tot * usable), h = 18 + sg.z * 16, y = H - 26 - h;
+    const r = `<rect x="${x.toFixed(1)}" y="${y}" width="${w.toFixed(1)}" height="${h}" rx="3" fill="#fff" fill-opacity="${.3 + sg.z * .14}"/>${w > 62 ? `<text x="${(x + 8).toFixed(1)}" y="${y + 16}">${ZNAME[sg.z]}</text>` : ""}`; x += w + gap; return r; }).join("");
+  return `<div class="wb" style="background:linear-gradient(160deg,${pal[0]},${pal[1]} 55%,${pal[2]})"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
+    ${bars}<text x="16" y="${H - 9}" class="wt">0 min</text><text x="${W - 16}" y="${H - 9}" text-anchor="end" class="wt">${Math.round(tot)} min</text></svg></div>`;
+}
+
+function stairs() {
+  const steps = [[START.date, START.kg], ...MILESTONES.filter(([, kg]) => kg >= GOAL_KG)];
+  const now = weightAvg(today()) ?? latestWeight() ?? START.kg;
+  const W = 340, H = 150, n = steps.length, sw = W / n, top = 18, hi = START.kg, lo = GOAL_KG;
+  const y = (v) => top + (hi - v) / (hi - lo) * (H - top - 34);
+  let reached = 0; steps.forEach(([, kg], i) => { if (now <= kg + 0.05) reached = i; });
+  const blocks = steps.map(([d, kg], i) => { const on = i <= reached;
+    return `<rect x="${i * sw + 1}" y="${y(kg)}" width="${sw - 2}" height="${H - 20 - y(kg)}" rx="3" fill="${on ? "var(--acc)" : "var(--fill)"}" ${on ? "" : ""}/>
+      <text x="${i * sw + sw / 2}" y="${y(kg) - 6}" text-anchor="middle" class="sb">${fmt(kg, kg % 1 ? 1 : 0)}</text>
+      <text x="${i * sw + sw / 2}" y="${H - 4}" text-anchor="middle">${i ? dShort(d).replace(/^\w+\.,\s*/, "") : "Start"}</text>`; }).join("");
+  const cx = reached * sw + sw / 2, cy = y(steps[reached][1]) + 18;
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" class="stairs" role="img" aria-label="Zwischenziele als Treppe">${blocks}
+    <circle cx="${cx}" cy="${cy}" r="9" fill="#fff"/><circle cx="${cx}" cy="${cy}" r="5" fill="var(--acc)"/>
+    <g transform="translate(${(n - 1) * sw + sw / 2 + 16} ${y(lo) - 24})"><path d="M0 0v20" stroke="var(--ink)" stroke-width="1.5"/><path d="M1 0h12l-3 4 3 4H1z" fill="var(--ink)"/></g></svg>`;
+}
+
 // ---------- Screens ----------
 function vHeute() {
   const t = today(), p = planOn(t), a = ampel();
@@ -558,21 +650,20 @@ function vHeute() {
   let wo;
   if (p && isTrain(p)) {
     const segs = workout(p), k = kindOf(p.kind), [from, to] = (p.slot || "").split("–"), isK = p.kind.startsWith("kraft");
-    wo = `<div class="wo-top"><div class="grow"><div class="wo-tag">${ICO[k.ico]} ${k.label}${p.week ? `, Woche ${p.week}` : ""}</div><div class="wo-title">${esc(p.title)}</div></div>
+    wo = `${woBanner(p, segs)}<div class="wo-top"><div class="grow"><div class="wo-tag">${ICO[k.ico]} ${k.label}${p.week ? `, Woche ${p.week}` : ""}</div><div class="wo-title">${esc(p.title)}</div></div>
         ${from ? `<div class="wo-time"><b>${esc(from)}</b><span>bis ${esc(to || "")}</span></div>` : ""}</div>
-      ${!isK && segs.length ? `<div class="wo-stats"><div><b>${p.km ? fmt(p.km, p.km % 1 ? 1 : 0) + " km" : "–"}</b><span>Distanz</span></div><div><b>${totalMin(segs)} min</b><span>Dauer</span></div><div><b>${p.kind === "run_quality" ? "hart" : p.kind === "long" ? "lang" : "locker"}</b><span>Intensität</span></div></div>${structBar(segs, true)}` : ""}
-      ${isK ? `<div class="wo-ex">${exercises(p).map((x) => `<span>${esc(x)}</span>`).join("")}</div>` : `<p class="wo-desc">${esc(p.details)}</p>`}
+      ${!isK && segs.length ? `<div class="wo-stats"><div><b>${p.km ? fmt(p.km, p.km % 1 ? 1 : 0) + " km" : "–"}</b><span>Distanz</span></div><div><b>${totalMin(segs)} min</b><span>Dauer</span></div><div><b>${p.kind === "run_quality" ? "hart" : p.kind === "long" ? "lang" : "locker"}</b><span>Intensität</span></div></div>` : ""}
+      ${isK ? `<div class="wo-ex">${exercises(p).map((x) => `<span>${esc(x)}</span>`).join("")}</div>${exList(p).length < 3 ? `<p class="wo-desc">${esc(p.details)}</p>` : ""}` : `<p class="wo-desc">${esc(p.details)}</p>`}
       ${p.moved_note ? `<p class="wo-note">${esc(p.moved_note)}</p>` : ""}
       <button class="cta ${p.done ? "done" : ""}" data-done="${p.date}">${ICO.check}${p.done ? "Erledigt" : "Als erledigt markieren"}</button>`;
   } else {
     const k = kindOf(p ? p.kind : "rest");
-    wo = `<div class="restday"><div class="ic">${ICO[k.ico]}</div><div><b>${p ? esc(p.title) : "Noch kein Plan"}</b><p>${p ? esc(p.details) : "Dein Plan startet am 6. November."}</p></div></div>`;
+    wo = `${woBanner(p, [])}<div class="restday"><div><b>${p ? esc(p.title) : "Noch kein Plan"}</b><p>${p ? esc(p.details) : "Dein Plan startet am 6. November."}</p></div></div>`;
   }
   if (tomorrow && isTrain(tomorrow)) wo += `<div class="tmrw">${ICO.cal}<div class="grow"><b>Morgen: ${esc(tomorrow.title)}</b> <span>${tomorrow.slot ? tomorrow.slot.split("–")[0] : ""}${tomorrow.km ? `, ${fmt(tomorrow.km, tomorrow.km % 1 ? 1 : 0)} km` : ""}</span></div></div>`;
 
   return `${nav("Heute", dLong(t), `<button class="navbtn" id="reload" aria-label="Aktualisieren">${ICO.refresh}</button><button class="avatar" id="me" aria-label="Menü">D</button>`)}
-  <section class="sec"><div class="goal"><div class="gt">Halbmarathon unter 2:00 h</div><div class="gd"><b>${raceIn}</b><span>Tage</span></div><div class="gh">${RACE.name}, ${monthDay(RACE.date)}</div></div>
-    ${weeksBar(weekNo)}<div class="wbl"><span>${weekNo ? `Woche ${weekNo} von 26` : "Start-Wochenende"}</span><span>${esc((p && p.phase) || "")}</span></div></section>
+  ${hero(raceIn, weekNo, daysBetween("2026-11-06", t) / daysBetween("2026-11-06", RACE.date))}
 
   <section class="sec"><div class="sh"><h2>Training heute</h2>${evs.length ? `<span class="xs sub">${evs.length} Termin${evs.length > 1 ? "e" : ""}</span>` : ""}</div>${wo}</section>
 
@@ -697,7 +788,7 @@ function vKoerper() {
     <div class="kv"><div><b>${fmt(now, 1)} kg</b><span>aktuell</span></div><div><b class="${diff == null ? "" : diff <= 0 ? "up" : "dn"}">${diff == null ? "–" : (diff > 0 ? "+" : "−") + fmt(Math.abs(diff), 1)}</b><span>zur Vorwoche</span></div><div><b>${fmt(lost, 1)} kg</b><span>von ${fmt(START.kg - GOAL_KG)} geschafft</span></div></div>
     <div class="wchart">${weightChart(false)}</div>
     <div class="wform"><input type="text" inputmode="decimal" id="wkg" value="${todayRow.kg ? fmt(todayRow.kg, 1) : ""}" placeholder="kg heute" aria-label="Gewicht heute in kg"><input type="text" inputmode="decimal" id="wwaist" value="${todayRow.waist_cm ? fmt(todayRow.waist_cm, 1) : ""}" placeholder="Bauch cm" aria-label="Bauchumfang in cm"><button class="btn" id="wsave">Sichern</button></div></section>
-  <section class="sec"><div class="sh"><h2>Zwischenziele</h2></div><div class="list">${MILESTONES.map(([d, kg]) => { const av = weightAvg(d); const ok = av != null && av <= kg; const past = d < t;
+  <section class="sec"><div class="sh"><h2>Zwischenziele</h2><span class="xs sub">bis ${GOAL_KG} kg</span></div>${stairs()}<div class="list" style="margin-top:12px">${MILESTONES.map(([d, kg]) => { const av = weightAvg(d); const ok = av != null && av <= kg; const past = d < t;
       return `<div class="it"><span class="grow">${monthDay(d)}</span><span class="kc">${fmt(kg, 1)} kg</span><span class="xs ${ok ? "up" : past ? "dn" : "sub"}" style="width:72px;text-align:right;font-weight:600">${ok ? "geschafft" : past ? "verpasst" : "offen"}</span></div>`; }).join("")}</div></section>
   <section class="sec"><div class="sh"><h2>Erholung</h2><span class="xs sub">${last.date ? `Nacht auf ${dShort(last.date)}` : ""}</span></div>
     ${rd ? `<div class="ready">${gauge(rd.score, AMP_COLOR[a.c])}<div><h3 style="color:${AMP_COLOR[a.c]}">${AMP_TXT[a.c][0]}</h3><p>${esc(a.why || AMP_TXT[a.c][1])}</p></div></div>` : ""}
