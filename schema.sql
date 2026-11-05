@@ -100,21 +100,9 @@ begin
   end loop;
 end $$;
 
--- Startwerte und Favoriten
+-- Startwert
 insert into weights(date, kg, source) values ('2026-11-05', 95.0, 'start');
 
-insert into favorites(name, meal, kcal, protein, is_beer, sort) values
- ('Skyr natur 500 g', 'Snack', 315, 55, false, 10),
- ('Banane', 'Snack', 105, 1, false, 20),
- ('REWE Salat mit Hähnchen', 'Mittag', 420, 32, false, 30),
- ('eat happy Sushi-Box', 'Mittag', 520, 18, false, 40),
- ('Döner-Teller mit Salat', 'Mittag', 750, 45, false, 50),
- ('Döner im Brot', 'Mittag', 850, 40, false, 60),
- ('2 Vollkornbrötchen mit Putenbrust', 'Abend', 480, 34, false, 70),
- ('Rührei aus 3 Eiern', 'Frühstück', 270, 20, false, 80),
- ('Proteinshake (Wasser)', 'Snack', 120, 24, false, 90),
- ('Bier 0,5 l', 'Getränk', 215, 2, true, 100),
- ('Alkoholfreies Weizen 0,5 l', 'Getränk', 125, 2, false, 110);
 
 -- Öffentlicher Speicher nur für das Trainingsplan-Kalender-Abo (enthält nur den Plan, keine Gesundheitsdaten)
 insert into storage.buckets (id, name, public) values ('kalender', 'kalender', true)
