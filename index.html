@@ -247,6 +247,7 @@ function planCard(p, opts = {}) {
   const tick = !["rest", "free"].includes(p.kind);
   return `<div class="card"><div class="row">
     <div class="grow"><div class="small muted">${p.week ? `Woche ${p.week} · ${esc(p.phase)}` : esc(p.phase)}${p.km ? ` · ${fmt(p.km, 1)} km` : ""}</div>
+      ${p.slot ? `<div class="pill acc" style="margin:6px 0 2px">🕒 ${esc(p.slot)} Uhr</div>` : ""}
       <div style="font-size:19px;font-weight:700;margin:2px 0">${kindIcon(p.kind)} ${esc(p.title)}</div>
       <div class="small">${esc(p.details)}</div>
       ${p.moved_note ? `<div class="small" style="color:var(--blue);margin-top:6px">📅 ${esc(p.moved_note)}</div>` : ""}</div>
@@ -282,7 +283,7 @@ function vHeute() {
 
   <h2>Heute laut Plan</h2>
   ${planCard(p)}
-  ${tomorrow ? `<div class="small muted" style="margin:-4px 4px 4px">Morgen: ${kindIcon(tomorrow.kind)} ${esc(tomorrow.title)}${tomorrow.km ? ` (${fmt(tomorrow.km, 1)} km)` : ""}</div>` : ""}
+  ${tomorrow ? `<div class="small muted" style="margin:-4px 4px 4px">Morgen: ${kindIcon(tomorrow.kind)} ${esc(tomorrow.title)}${tomorrow.km ? ` (${fmt(tomorrow.km, 1)} km)` : ""}${tomorrow.slot ? ` · ${esc(tomorrow.slot)}` : ""}</div>` : ""}
 
   <h2>Kalorien heute</h2>
   <div class="card" data-go="essen"><div class="row"><div class="grow"><div class="big">${fmt(Math.max(left, 0))} <span class="small muted">kcal übrig</span></div>
@@ -396,7 +397,7 @@ function vTraining() {
   <div class="card">${days.map((d) => { const p = planOn(d); const ev = eventsOn(d); const ac = actsOn(d);
     const tick = p && !["rest", "free"].includes(p.kind);
     return `<div class="day ${d === today() ? "today" : ""}"><div class="d"><div class="w">${wdShort(d)}</div><div class="n">${+d.slice(8)}</div></div>
-      <div class="grow">${p ? `<b>${kindIcon(p.kind)} ${esc(p.title)}</b>${p.km ? ` <span class="small muted">${fmt(p.km, 1)} km</span>` : ""}<div class="small muted">${esc(p.details)}</div>${p.moved_note ? `<div class="small" style="color:var(--blue)">📅 ${esc(p.moved_note)}</div>` : ""}` : `<span class="muted">–</span>`}
+      <div class="grow">${p ? `<b>${kindIcon(p.kind)} ${esc(p.title)}</b>${p.km ? ` <span class="small muted">${fmt(p.km, 1)} km</span>` : ""}${p.slot ? ` <span class="pill acc">🕒 ${esc(p.slot)}</span>` : ""}<div class="small muted">${esc(p.details)}</div>${p.moved_note ? `<div class="small" style="color:var(--blue)">📅 ${esc(p.moved_note)}</div>` : ""}` : `<span class="muted">–</span>`}
       ${ev.map((e) => `<div class="ev">📅 ${e.all_day ? "" : timeOf(e.starts_at) + " "}${esc(e.title)}</div>`).join("")}
       ${ac.map((a) => `<div class="act">✓ ${esc(a.type)} ${a.distance_km ? fmt(a.distance_km, 1) + " km · " : ""}${a.duration_min} min${a.avg_hr ? " · Ø " + a.avg_hr : ""}</div>`).join("")}</div>
       ${tick ? `<button class="check ${p.done ? "on" : ""}" data-done="${d}" aria-label="Erledigt">✓</button>` : ""}</div>`; }).join("")}</div>

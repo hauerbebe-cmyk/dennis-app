@@ -60,7 +60,8 @@ create table plan (
   title text,
   details text,
   km numeric(4,1),
-  moved_note text,                -- falls Claude die Einheit wegen eines Termins verschoben hat
+  moved_note text,                -- falls die Einheit wegen eines Termins verschoben wurde
+  slot text,                      -- vorgeschlagenes Zeitfenster, z. B. 17:30–18:15
   done boolean default false,
   done_at timestamptz,
   updated_at timestamptz default now()
